@@ -1,0 +1,15 @@
+node_modules/
+.next/
+apps/web/.next/
+.zeke/
+.env*
+!.env.example
+.vercel/
+*.tsbuildinfo
+.eve/cache/
+.output/
+.eve/builds/
+
+# Local runtime state written by dev tools (not project source)
+.eve/
+.taste-skill/

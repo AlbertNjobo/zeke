@@ -1,0 +1,244 @@
+@import "../styles/globals.css";
+@import "tw-animate-css";
+@source "../node_modules/streamdown/dist/*.js";
+
+/*
+ * Zeke theme, layered on BoardUI's tokens (styles/theme.css).
+ *
+ * - accent ramp  → tangerine. Reserved for Zeke itself and for "needs you".
+ * - neutral ramp → warm paper greys, so every BoardUI surface, border and text token follows.
+ * - primary button → ink, so ordinary actions never compete with Zeke's colour.
+ * - type → Geist for words, Geist Mono for money, SKUs and times.
+ */
+
+@theme {
+  --color-accent-50: #fff4ee;
+  --color-accent-100: #ffe3d6;
+  --color-accent-200: #ffd3c1;
+  --color-accent-300: #ffb896;
+  --color-accent-400: #ff8a5c;
+  --color-accent-500: #ff5b1f;
+  --color-accent-600: #e8480f;
+  --color-accent-700: #b43a0c;
+  --color-accent-800: #8a3410;
+  --color-accent-900: #6b2a10;
+  --color-accent-950: #3d1606;
+
+  --color-neutral-50: #fafaf8;
+  --color-neutral-100: #f6f5f1;
+  --color-neutral-200: #ecebe6;
+  --color-neutral-300: #e0ded7;
+  --color-neutral-400: #8e8c85;
+  --color-neutral-500: #66655f;
+  --color-neutral-600: #53524d;
+  --color-neutral-700: #3d3c38;
+  --color-neutral-800: #2a2a27;
+  --color-neutral-900: #1f1f1d;
+  --color-neutral-950: #17181a;
+
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  /* Zeke's screen wallpaper (decorative art: physical colours, not UI tokens). */
+  --color-wallpaper-sky: #f4d9c2;
+  --color-wallpaper-sun: #f8c29c;
+  --color-wallpaper-hill: #ecc3a4;
+  --color-wallpaper-ink: #7a4a2a;
+}
+
+:root {
+  --color-background-full: var(--color-neutral-50);
+  --color-rail: #f1f0ec;
+  --color-state-success-text: #1e5e3e;
+  --color-state-success-base: #e6f2eb;
+  --color-state-success-mark: #1e7a4e;
+
+  --gradient-button-primary-default: linear-gradient(180deg, var(--color-neutral-800) 0%, var(--color-neutral-950) 100%);
+  --gradient-button-primary-hover: linear-gradient(180deg, var(--color-neutral-700) 0%, var(--color-neutral-900) 100%);
+  --gradient-button-primary-active: linear-gradient(180deg, var(--color-neutral-950) 0%, var(--color-neutral-950) 100%);
+
+  /* shadcn variables, still read by the eve chat components under /s. */
+  --background: var(--color-neutral-50);
+  --foreground: var(--color-neutral-950);
+  --card: #ffffff;
+  --card-foreground: var(--color-neutral-950);
+  --popover: #ffffff;
+  --popover-foreground: var(--color-neutral-950);
+  --primary: var(--color-neutral-950);
+  --primary-foreground: #ffffff;
+  --secondary: var(--color-neutral-100);
+  --secondary-foreground: var(--color-neutral-950);
+  --muted: var(--color-neutral-100);
+  --muted-foreground: var(--color-neutral-500);
+  --accent: var(--color-neutral-200);
+  --accent-foreground: var(--color-neutral-950);
+  --destructive: #b3261e;
+  --border: var(--color-neutral-300);
+  --input: var(--color-neutral-300);
+  --ring: var(--color-accent-500);
+  --radius: 0.75rem;
+}
+
+.dark {
+  --color-rail: var(--color-neutral-900);
+  --color-state-success-text: #9fd9b8;
+  --color-state-success-base: #173a29;
+  --color-state-success-mark: #4fb985;
+}
+
+@theme inline {
+  --color-rail: var(--color-rail);
+  --color-state-success-mark: var(--color-state-success-mark);
+
+  /* shadcn re-exports for the eve chat components. */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
+/* Radix data-state variants used by the eve chat's Trace component. */
+@custom-variant data-open {
+  &:where([data-state="open"]),
+  &:where([data-open]:not([data-open="false"])) {
+    @slot;
+  }
+}
+
+@custom-variant data-closed {
+  &:where([data-state="closed"]),
+  &:where([data-closed]:not([data-closed="false"])) {
+    @slot;
+  }
+}
+
+/* ----- Zeke's face ---------------------------------------------------------
+ * One construction, six states. Sized in em, so `font-size` sets the face size.
+ * The tag hole takes the surface colour behind the face via --zeke-hole.
+ * ------------------------------------------------------------------------- */
+.zeke-face {
+  position: relative;
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+  border-radius: 32%;
+  background: var(--color-accent-500);
+}
+.zeke-face[data-state="blocked"] {
+  background: var(--color-neutral-400);
+}
+.zeke-face .zeke-hole {
+  position: absolute;
+  top: 0.11em;
+  inset-inline-end: 0.11em;
+  width: 0.09em;
+  height: 0.09em;
+  border-radius: 50%;
+  background: var(--zeke-hole, var(--color-background-full));
+}
+.zeke-face .zeke-eye {
+  position: absolute;
+  top: 0.38em;
+  width: 0.11em;
+  height: 0.2em;
+  border-radius: 0.06em;
+  background: var(--color-neutral-950);
+  transition: transform 300ms ease, height 300ms ease, top 300ms ease;
+}
+.zeke-face .zeke-eye[data-side="l"] {
+  left: 0.29em;
+}
+.zeke-face .zeke-eye[data-side="r"] {
+  right: 0.29em;
+}
+.zeke-face[data-state="idle"] .zeke-eye {
+  animation: zeke-blink 4.5s infinite;
+}
+.zeke-face[data-state="thinking"] .zeke-eye {
+  transform: translate(0.05em, -0.07em);
+}
+.zeke-face[data-state="working"] {
+  animation: zeke-bob 1.1s ease-in-out infinite;
+}
+.zeke-face[data-state="working"] .zeke-eye {
+  top: 0.45em;
+  height: 0.07em;
+}
+.zeke-face[data-state="waiting"] {
+  animation: zeke-pulse 1.6s ease-in-out infinite;
+}
+.zeke-face[data-state="waiting"] .zeke-eye {
+  top: 0.35em;
+  width: 0.13em;
+  height: 0.23em;
+}
+.zeke-face[data-state="blocked"] .zeke-eye {
+  top: 0.48em;
+  width: 0.14em;
+  height: 0.045em;
+}
+.zeke-face[data-state="blocked"] .zeke-eye[data-side="l"] {
+  transform: rotate(12deg);
+}
+.zeke-face[data-state="blocked"] .zeke-eye[data-side="r"] {
+  transform: rotate(-12deg);
+}
+.zeke-face[data-state="done"] .zeke-eye {
+  top: 0.4em;
+  width: 0.14em;
+  height: 0.14em;
+  box-sizing: border-box;
+  border: 0.045em solid var(--color-neutral-950);
+  border-bottom-color: transparent;
+  border-radius: 50%;
+  background: transparent;
+}
+
+/* Live call waveform bars. */
+.zeke-wave > span {
+  display: block;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--color-accent-500);
+  animation: zeke-wave 1s ease-in-out infinite;
+}
+
+@keyframes zeke-blink {
+  0%, 93%, 100% { transform: scaleY(1); }
+  96% { transform: scaleY(0.1); }
+}
+@keyframes zeke-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-0.03em); }
+}
+@keyframes zeke-pulse {
+  0%, 100% { box-shadow: 0 0 0 0.03em var(--color-accent-200); }
+  50% { box-shadow: 0 0 0 0.1em var(--color-accent-200); }
+}
+@keyframes zeke-wave {
+  0%, 100% { transform: scaleY(0.4); }
+  50% { transform: scaleY(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zeke-face,
+  .zeke-face .zeke-eye,
+  .zeke-wave > span {
+    animation: none !important;
+    transition: none !important;
+  }
+}
