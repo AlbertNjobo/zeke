@@ -37,8 +37,13 @@ async function write(state: ZekeState) {
 export async function readState(): Promise<ZekeState> {
   try {
     const state = JSON.parse(await readFile(stateFile(), "utf8")) as ZekeState;
-    // State files written before the audit log existed are still valid; fill it in on read.
+    // Older state files are still valid; fill in fields added after they were written.
     if (!Array.isArray(state.auditLog)) state.auditLog = [];
+    if (typeof state.company.maxChases !== "number") state.company.maxChases = 1;
+    for (const r of state.restocks) {
+      if (!Array.isArray(r.chases)) r.chases = [];
+      if (!Array.isArray(r.inbound)) r.inbound = [];
+    }
     return state;
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;

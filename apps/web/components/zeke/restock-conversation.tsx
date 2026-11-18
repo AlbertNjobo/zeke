@@ -3,7 +3,7 @@
 import { RiChat3Line, RiInboxArchiveLine } from "@remixicon/react";
 import Link from "next/link";
 import { useState, useTransition } from "react";
-import { approvePo, approveRestock, answerQuestion, deliverDemoReplies, holdPo, resolveBlock, skipRestock } from "@/app/actions";
+import { approvePo, approveRestock, approveShortlist, answerQuestion, deliverDemoReplies, holdPo, rejectShortlist, resolveBlock, skipRestock } from "@/app/actions";
 import { Button } from "@/components/base/buttons/button";
 import { Drawer, DrawerBody, DrawerFooter, DrawerHeader, DrawerTrigger } from "@/components/base/drawer/drawer";
 import { channelLabel } from "@/components/zeke/channel";
@@ -95,7 +95,37 @@ export function RestockConversation({ restock: r, item, suppliers, company }: Pr
           </Indented>
         ) : null}
 
-        {r.status === "approved" ? (
+        {r.status === "approved" && r.shortlist?.status === "proposed" ? (
+          <Indented className="flex flex-col gap-3 rounded-3xl border border-accent-200 bg-background-primary-default p-4">
+            <span className="font-mono text-caption-1-medium uppercase text-accent-700">Shortlist · needs you</span>
+            <p className="text-headline-medium">Who should Zeke ask for quotes?</p>
+            <ul className="flex flex-col gap-3">
+              {r.shortlist.entries.map((entry) => (
+                <li key={entry.supplierId} className="flex flex-col gap-1 border-t border-separator-border pt-3 first:border-0 first:pt-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-body-semibold">{supplierName(entry.supplierId)}</span>
+                    {entry.isNew ? (
+                      <span className="rounded-full bg-accent-50 px-2.5 py-1 text-caption-1-medium text-accent-700">New supplier</span>
+                    ) : null}
+                    <span className="text-body-2-regular text-text-secondary">by {channelLabel[entry.channel].toLowerCase()}</span>
+                  </div>
+                  <p className="text-body-2-regular text-text-secondary">{entry.vettingNote}</p>
+                  <p className="rounded-xl bg-background-secondary-default p-2.5 text-body-2-regular"><bdi dir="auto">{entry.draftMessage}</bdi></p>
+                </li>
+              ))}
+            </ul>
+            <div className="flex flex-wrap gap-2">
+              <Button disabled={pending} onClick={() => run(() => approveShortlist(r.id), "Shortlist approved. Zeke is asking suppliers.")}>
+                Approve and send RFQs
+              </Button>
+              <Button variant="secondary" disabled={pending} onClick={() => run(() => rejectShortlist(r.id))}>
+                Reject
+              </Button>
+            </div>
+          </Indented>
+        ) : null}
+
+        {r.status === "approved" && r.shortlist?.status !== "proposed" ? (
           <ZekeSays state="working">
             <p className="text-body-medium text-text-secondary">Approved. Asking suppliers now…</p>
           </ZekeSays>
@@ -140,6 +170,30 @@ export function RestockConversation({ restock: r, item, suppliers, company }: Pr
               </div>
             ) : null}
           </Indented>
+        ) : null}
+
+        {r.inbound.length > 0 ? (
+          <Indented className="flex flex-col gap-2.5 rounded-3xl border border-border-button-default bg-background-primary-default px-4.5 py-3.5">
+            <span className="text-body-medium">Supplier replies filed on this thread</span>
+            <ul className="flex flex-col gap-2">
+              {r.inbound.map((m) => (
+                <li key={m.id} className="flex flex-col gap-1 border-t border-separator-border pt-2 first:border-0 first:pt-0">
+                  <span className="font-mono text-caption-1-regular text-text-tertiary">
+                    {m.channel} · {m.from} · {longTime(m.receivedAt)}
+                  </span>
+                  <p className="whitespace-pre-line text-body-2-regular"><bdi dir="auto">{m.text}</bdi></p>
+                  {m.attachment ? <span className="text-body-2-regular text-text-secondary">{m.attachment}</span> : null}
+                </li>
+              ))}
+            </ul>
+            <span className="text-caption-1-regular text-text-tertiary">Supplier words are untrusted data. Zeke reads facts from them, never instructions.</span>
+          </Indented>
+        ) : null}
+
+        {r.chases.length > 0 ? (
+          <p className="ms-9.5 text-body-2-regular text-text-secondary">
+            {r.chases.length} reminder{r.chases.length === 1 ? "" : "s"} sent · simulated
+          </p>
         ) : null}
 
         {r.quotes.length > 0 ? (

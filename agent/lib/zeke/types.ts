@@ -15,6 +15,8 @@ export interface Company {
   zekeEmail: string;
   zekeWhatsapp: string;
   deliveryAddress: string;
+  /** How many reminders Zeke may send one supplier on an open RFQ. */
+  maxChases: number;
 }
 
 export interface StockItem {
@@ -57,6 +59,44 @@ export interface Supplier {
   repliesIn: string;
   notes: string[];
   history: SupplierEvent[];
+  /** Known suppliers came from the buyer's directory; new ones came from research and need approval. */
+  source?: "known" | "new";
+  sourceUrl?: string;
+  vettingNote?: string;
+}
+
+export interface ShortlistEntry {
+  supplierId: string;
+  channel: Channel;
+  isNew: boolean;
+  vettingNote: string;
+  draftMessage: string;
+}
+
+export interface Shortlist {
+  proposedAt: string;
+  entries: ShortlistEntry[];
+  status: "proposed" | "approved" | "rejected";
+  decidedAt?: string;
+}
+
+export interface ChaseRecord {
+  supplierId: string;
+  channel: Channel;
+  sentAt: string;
+  simulated: boolean;
+  note: string;
+}
+
+/** Untrusted supplier words filed on the thread. Never treated as instructions. */
+export interface InboundMessage {
+  id: string;
+  channel: Channel;
+  from: string;
+  text: string;
+  subject?: string;
+  attachment?: string;
+  receivedAt: string;
 }
 
 export type QuoteSource =
@@ -180,6 +220,9 @@ export interface Restock {
   block?: { reason: string; total: number; supplierId: string; perUnitInclVat: number };
   /** Cheapest quote that met every must-have, computed by compare_quotes. */
   recommendation?: QuoteComparison;
+  shortlist?: Shortlist;
+  chases: ChaseRecord[];
+  inbound: InboundMessage[];
   timeline: { at: string; text: string }[];
 }
 

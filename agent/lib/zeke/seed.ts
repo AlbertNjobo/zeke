@@ -23,6 +23,7 @@ export function seedState(): ZekeState {
       zekeEmail: "zeke@[yourco].com",
       zekeWhatsapp: "+971 [ZEKE NO.]",
       deliveryAddress: "[YOUR ADDRESS]",
+      maxChases: 1,
     },
     poCounter: 143,
     items: [
@@ -180,6 +181,8 @@ export function seedState(): ZekeState {
             askedAt: dubai("10:41"),
           },
         ],
+        chases: [],
+        inbound: [],
         po: {
           number: "PO-0142",
           supplierId: "gulf-medical",
@@ -217,6 +220,8 @@ export function seedState(): ZekeState {
         rfqs: [],
         quotes: [],
         questions: [],
+        chases: [],
+        inbound: [],
         timeline: [{ at: dubai("11:05"), text: "Stock check found masking tape below its reorder point" }],
       },
       {
@@ -234,6 +239,8 @@ export function seedState(): ZekeState {
         rfqs: [{ supplierId: "gulf-medical", channel: "email", sentAt: dubai("08:05"), simulated: true }],
         quotes: [],
         questions: [],
+        chases: [],
+        inbound: [],
         block: {
           reason: "The cheapest quote for 60 rolls is AED 5,670 incl. VAT, over the AED 5,000 limit for one order.",
           total: 5670,
@@ -260,6 +267,8 @@ export function seedState(): ZekeState {
         rfqs: [],
         quotes: [],
         questions: [],
+        chases: [],
+        inbound: [],
         po: {
           number: "PO-0139",
           supplierId: "gulf-medical",

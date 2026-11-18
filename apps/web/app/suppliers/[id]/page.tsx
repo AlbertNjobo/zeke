@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { AppShell } from "@/components/zeke/app-shell";
 import { channelIcon } from "@/components/zeke/channel";
+import { SupplierApproval } from "@/components/zeke/supplier-approval";
 import { SupplierHistory } from "@/components/zeke/supplier-history";
 import { ZekeFace } from "@/components/zeke/zeke-face";
 import { getState } from "@/lib/zeke/server";
@@ -52,6 +53,14 @@ export default async function SupplierPage({ params }: { params: Promise<{ id: s
             ))}
           </ul>
         </div>
+
+        {!supplier.approved ? (
+          <div className="flex flex-col gap-2 rounded-3xl border border-accent-200 bg-accent-50 p-4.5">
+            <span className="text-body-semibold">New supplier · not approved</span>
+            <span className="text-body-2-regular text-text-secondary">{supplier.vettingNote ?? "Check the source before letting Zeke contact them."}</span>
+            <SupplierApproval supplierId={supplier.id} name={supplier.name} />
+          </div>
+        ) : null}
 
         <div className="flex flex-wrap items-start gap-5.5">
           <SupplierHistory supplier={supplier} />

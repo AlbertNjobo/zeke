@@ -43,6 +43,8 @@ export default defineTool({
         rfqs: [],
         quotes: [],
         questions: [],
+        chases: [],
+        inbound: [],
         timeline: [{ at, text: `Zeke proposed ${qty} ${item.unit} of ${item.name}` }],
       });
       state.activity.unshift({ at, text: `Proposed restocking ${item.name}` });

@@ -14,8 +14,15 @@ export default defineTool({
   approval: async ({ toolInput }) => {
     const id = (toolInput as { restockId?: string } | undefined)?.restockId;
     if (!id) return { type: "denied", reason: "No restockId given." };
-    const restock = restockById(await readState(), id);
+    const state = await readState();
+    const restock = restockById(state, id);
     if (!restock) return { type: "denied", reason: `No restock "${id}".` };
+    if (restock.shortlist && restock.shortlist.status !== "approved") {
+      return { type: "denied", reason: "The buyer hasn't approved this shortlist yet. Wait for their approval in the app." };
+    }
+    if (restock.supplierIds.some((sid) => !supplierById(state, sid)?.approved)) {
+      return { type: "denied", reason: "A supplier on this restock is new and hasn't been approved. Wait for the buyer." };
+    }
     if (restock.status === "approved") return "approved";
     if (restock.status === "proposed") return { type: "denied", reason: "The buyer hasn't approved this restock yet. Wait for their yes in the app." };
     return { type: "denied", reason: `Requests already went out or this restock is ${restock.status}.` };
@@ -29,7 +36,10 @@ export default defineTool({
     for (const supplierId of restock.supplierIds) {
       const supplier = supplierById(state, supplierId);
       if (!supplier) continue;
-      const message = rfqMessage({
+      const approvedDraft = restock.shortlist?.status === "approved"
+        ? restock.shortlist.entries.find((e) => e.supplierId === supplierId)?.draftMessage
+        : undefined;
+      const message = approvedDraft ?? rfqMessage({
         company: state.company,
         supplier,
         itemName: item?.name ?? restock.itemId,

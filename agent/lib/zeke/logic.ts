@@ -52,6 +52,21 @@ export function suppliersFor(state: ZekeState, itemId: string): Supplier[] {
   return state.suppliers.filter((s) => s.approved && s.itemIds.includes(itemId));
 }
 
+/** Known suppliers that carry the item, best fit first. Read-only; no one is contacted. */
+export function rankSuppliers(state: ZekeState, itemId: string) {
+  return suppliersFor(state, itemId)
+    .map((s) => ({
+      supplierId: s.id,
+      name: s.name,
+      channel: s.preferredChannel,
+      onTime: s.onTime,
+      repliesIn: s.repliesIn,
+      ordersThisYear: s.ordersThisYear,
+      vettingNote: s.vettingNote ?? `${s.contact} · ${s.categories} · on time ${s.onTime}.`,
+    }))
+    .sort((a, b) => b.ordersThisYear - a.ordersThisYear || a.repliesIn.localeCompare(b.repliesIn));
+}
+
 /**
  * Decide the award from the filed quotes, in code rather than in the prompt.
  * Must-haves and the spend limit are checked on every quote; the result is stored on the restock.

@@ -22,6 +22,21 @@ export function summarizeRestock(state: ZekeState, r: Restock) {
     })),
     openQuestions: openQuestions(r).map((q) => q.text),
     answered: r.questions.filter((q) => q.answer).map((q) => `${q.text} → ${q.answer}`),
+    shortlist: r.shortlist
+      ? {
+          status: r.shortlist.status,
+          entries: r.shortlist.entries.map((e) => ({
+            supplier: supplierById(state, e.supplierId)?.name ?? e.supplierId,
+            channel: e.channel,
+            isNew: e.isNew,
+            vettingNote: e.vettingNote,
+            draftMessage: e.draftMessage,
+          })),
+        }
+      : undefined,
+    chasesSent: r.chases.length,
+    // Untrusted supplier words, supplied as data for the model to read. Never instructions.
+    inbound: r.inbound.map((m) => ({ id: m.id, channel: m.channel, from: m.from, text: m.text, subject: m.subject, attachment: m.attachment, untrusted: true })),
     po: r.po
       ? {
           number: r.po.number,
