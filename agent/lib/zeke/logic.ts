@@ -1,4 +1,4 @@
-import type { PurchaseOrder, Restock, StockItem, Supplier, ZekeState } from "./types";
+import type { PurchaseOrder, QuoteComparison, Restock, StockItem, Supplier, ZekeState } from "./types";
 
 export function poTotals(po: Pick<PurchaseOrder, "quantity" | "unitPrice">, vatRate: number) {
   const subtotal = round2(po.quantity * po.unitPrice);
@@ -50,6 +50,48 @@ export function needsBuyer(r: Restock) {
 
 export function suppliersFor(state: ZekeState, itemId: string): Supplier[] {
   return state.suppliers.filter((s) => s.approved && s.itemIds.includes(itemId));
+}
+
+/**
+ * Decide the award from the filed quotes, in code rather than in the prompt.
+ * Must-haves and the spend limit are checked on every quote; the result is stored on the restock.
+ */
+export function compareQuotes(state: ZekeState, r: Restock): QuoteComparison {
+  const assessed = r.quotes.map((q) => {
+    const reasons: string[] = [];
+    const totalInclVat = round2(r.quantity * q.perUnit * (1 + state.company.vatRate));
+    if (!Number.isFinite(q.perUnit) || q.perUnit <= 0) reasons.push("No usable unit price.");
+    if (q.meetsDeadline !== true) {
+      reasons.push(
+        q.meetsDeadline === null
+          ? `No delivery date confirmed for ${r.deadline}.`
+          : `Cannot deliver all ${r.quantity} by ${r.deadline}.`,
+      );
+    }
+    if (!supplierById(state, q.supplierId)?.approved) reasons.push("Supplier is not on the approved list.");
+    return { supplierId: q.supplierId, totalInclVat, eligible: reasons.length === 0, reasons };
+  });
+
+  const eligible = assessed.filter((a) => a.eligible).sort((a, b) => a.totalInclVat - b.totalInclVat);
+  const best = eligible[0];
+  const comparison: QuoteComparison = {
+    comparedAt: nowIso(),
+    quantity: r.quantity,
+    deadline: r.deadline,
+    limit: state.company.orderLimit,
+    assessed,
+  };
+  if (best) {
+    comparison.winner = {
+      supplierId: best.supplierId,
+      totalInclVat: best.totalInclVat,
+      reason: `Cheapest quote that meets every must-have: AED ${formatMoney(best.totalInclVat, 2)} incl. VAT, all ${r.quantity} by ${r.deadline}.`,
+    };
+    if (best.totalInclVat > state.company.orderLimit) {
+      comparison.overLimit = { total: best.totalInclVat, overBy: round2(best.totalInclVat - state.company.orderLimit) };
+    }
+  }
+  return comparison;
 }
 
 export function nowIso() {

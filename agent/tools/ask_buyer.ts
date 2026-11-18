@@ -1,5 +1,6 @@
 import { defineTool } from "eve/tools";
 import { z } from "zod";
+import { appendAudit } from "../lib/zeke/audit";
 import { newId, nowIso, restockById } from "../lib/zeke/logic";
 import { updateState } from "../lib/zeke/store";
 
@@ -19,6 +20,7 @@ export default defineTool({
       const at = nowIso();
       r.questions.push({ id: newId("q"), text: question, options, askedAt: at });
       r.timeline.push({ at, text: `Asked you: ${question}` });
+      appendAudit(state, { actor: "zeke", action: "Asked buyer", detail: question, restockId });
       return { asked: true, next: "Wait for the buyer's answer in an [App] message." };
     });
   },

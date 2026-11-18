@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { appendAudit } from "@zeke/audit";
 import { nowIso, restockById } from "@zeke/logic";
 import { readState, resetState, updateState } from "@zeke/store";
 import { tellZeke, type TellResult } from "@/lib/zeke/agent-client";
@@ -24,6 +25,7 @@ export async function approveRestock(restockId: string): Promise<TellResult> {
     r.status = "approved";
     r.approvedAt = at;
     r.timeline.push({ at, text: `You approved asking for quotes on ${r.quantity}` });
+    appendAudit(s, { actor: "buyer", action: "Approved restock", detail: `Approved asking ${r.supplierIds.length} suppliers for quotes on ${r.quantity}.`, restockId });
   });
   refresh();
   return tellZeke(restockId, `[App] The buyer approved restock ${restockId}. Ask the suppliers for quotes now.`);
@@ -36,6 +38,7 @@ export async function skipRestock(restockId: string): Promise<TellResult> {
     const at = nowIso();
     r.status = "skipped";
     r.timeline.push({ at, text: "You skipped this restock. Nothing was sent." });
+    appendAudit(s, { actor: "buyer", action: "Skipped restock", detail: "Skipped. No supplier was contacted.", restockId });
   });
   refresh();
   return tellZeke(restockId, `[App] The buyer skipped restock ${restockId}. Don't contact anyone about it.`);
@@ -51,6 +54,7 @@ export async function approvePo(restockId: string): Promise<TellResult> {
     r.po.status = "approved";
     r.po.approvedAt = at;
     r.timeline.push({ at, text: `You approved ${r.po.number}` });
+    appendAudit(s, { actor: "buyer", action: `Approved ${r.po.number}`, detail: "Approved the PO for Zeke to send.", restockId, supplierId: r.po.supplierId });
     return r.po.number;
   });
   refresh();
@@ -64,6 +68,7 @@ export async function holdPo(restockId: string): Promise<TellResult> {
     const at = nowIso();
     r.po.status = "held";
     r.timeline.push({ at, text: `You held ${r.po.number}. Nothing was sent.` });
+    appendAudit(s, { actor: "buyer", action: `Held ${r.po.number}`, detail: "Held the PO. Nothing was sent.", restockId, supplierId: r.po.supplierId });
     return r.po.number;
   });
   refresh();
@@ -76,6 +81,7 @@ export async function answerQuestion(restockId: string, questionId: string, answ
     if (!q || q.answer !== undefined) throw new Error("This question was already answered.");
     q.answer = answer;
     q.answeredAt = nowIso();
+    appendAudit(s, { actor: "buyer", action: "Answered question", detail: `${q.text} → ${answer}`, restockId });
     return q.text;
   });
   refresh();
@@ -88,6 +94,7 @@ export async function resolveBlock(restockId: string, choice: string): Promise<T
     const r = restockById(s, restockId);
     if (!r || r.status !== "blocked") throw new Error("This restock isn't blocked any more.");
     r.timeline.push({ at: nowIso(), text: `You chose: ${choice}` });
+    appendAudit(s, { actor: "buyer", action: "Resolved block", detail: `Over the spend limit: ${choice}.`, restockId });
   });
   refresh();
   return tellZeke(restockId, `[App] On restock ${restockId}, which is over the spend limit, the buyer chose: ${choice}.`);

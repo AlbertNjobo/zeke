@@ -1,5 +1,6 @@
 import { defineTool } from "eve/tools";
 import { z } from "zod";
+import { appendAudit } from "../lib/zeke/audit";
 import { formatMoney, isOpen, itemById, nowIso, suppliersFor } from "../lib/zeke/logic";
 import { updateState } from "../lib/zeke/store";
 
@@ -45,6 +46,12 @@ export default defineTool({
         timeline: [{ at, text: `Zeke proposed ${qty} ${item.unit} of ${item.name}` }],
       });
       state.activity.unshift({ at, text: `Proposed restocking ${item.name}` });
+      appendAudit(state, {
+        actor: "zeke",
+        action: "Proposed restock",
+        detail: `${qty} ${item.unit} of ${item.name}, about AED ${formatMoney(estimate)} incl. VAT. ${reason}`,
+        restockId: id,
+      });
       return {
         restockId: id,
         status: "proposed",

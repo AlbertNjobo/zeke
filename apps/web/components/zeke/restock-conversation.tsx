@@ -155,6 +155,13 @@ export function RestockConversation({ restock: r, item, suppliers, company }: Pr
               <p>Quotes so far:</p>
             )}
             <QuoteTable quotes={r.quotes} suppliers={suppliers} quantity={r.quantity} company={company} chosen={r.po?.supplierId} />
+            {r.recommendation?.winner ? (
+              <p className="text-body-2-regular text-text-secondary">
+                Compared in code: {supplierName(r.recommendation.winner.supplierId)} is the cheapest quote meeting every must-have · AED{" "}
+                {formatMoney(r.recommendation.winner.totalInclVat, 2)} incl. VAT.
+                {r.recommendation.overLimit ? " Over your limit — nothing will be sent." : ""}
+              </p>
+            ) : null}
           </ZekeSays>
         ) : null}
 

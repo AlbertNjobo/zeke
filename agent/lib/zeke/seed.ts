@@ -284,5 +284,11 @@ export function seedState(): ZekeState {
       { at: dubai("09:40"), text: "Filed Gulf Medical's PDF quote" },
       { at: dubai("11:02"), text: "Called Fresh Pack" },
     ],
+    auditLog: [
+      { id: "audit-seed-1", at: dubai("06:20"), actor: "buyer", action: "Approved restock gloves", detail: "Asked 3 suppliers for quotes on 200 boxes.", restockId: "gloves" },
+      { id: "audit-seed-2", at: dubai("07:20"), actor: "zeke", action: "Drafted PO-0142", detail: "Gulf Medical, 200 boxes at AED 16.20 per box.", restockId: "gloves", supplierId: "gulf-medical" },
+      { id: "audit-seed-3", at: dubai("04:02"), actor: "buyer", action: "Approved restock couch-paper", detail: "Asked Gulf Medical for quotes on 60 rolls.", restockId: "couch-paper" },
+      { id: "audit-seed-4", at: dubai("06:48"), actor: "zeke", action: "Blocked over limit", detail: "Best quote AED 5,670 incl. VAT exceeds the AED 5,000 per-order limit.", restockId: "couch-paper", supplierId: "gulf-medical" },
+    ],
   };
 }

@@ -1,7 +1,8 @@
 import { defineTool } from "eve/tools";
 import { z } from "zod";
+import { appendAudit } from "../lib/zeke/audit";
 import { itemById, nowIso, restockById, supplierById } from "../lib/zeke/logic";
-import { rfqMessage, sendFromZeke } from "../lib/zeke/outbound";
+import { rfqMessage, sendFromZeke, type OutboundResult } from "../lib/zeke/outbound";
 import { readState, updateState } from "../lib/zeke/store";
 
 export default defineTool({
@@ -24,7 +25,7 @@ export default defineTool({
     const restock = restockById(state, restockId);
     if (!restock) throw new Error(`No restock "${restockId}".`);
     const item = itemById(state, restock.itemId);
-    const sent = [];
+    const sent: Array<{ supplierId: string; supplier: string } & OutboundResult> = [];
     for (const supplierId of restock.supplierIds) {
       const supplier = supplierById(state, supplierId);
       if (!supplier) continue;
@@ -55,6 +56,12 @@ export default defineTool({
       }
       r.timeline.push({ at, text: `Asked ${sent.length} suppliers for quotes` });
       s.activity.unshift({ at, text: `Asked ${sent.length} suppliers about ${item?.name ?? r.itemId}` });
+      appendAudit(s, {
+        actor: "zeke",
+        action: "Sent RFQs",
+        detail: `${sent.length} simulated requests by ${[...new Set(sent.map((x) => x.channel))].join(", ")} after the buyer approved restock ${restockId}.`,
+        restockId,
+      });
     });
 
     return {

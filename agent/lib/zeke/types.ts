@@ -94,6 +94,35 @@ export interface Question {
   answeredAt?: string;
 }
 
+/** An append-only record of who decided what. Never rewritten by tools or actions. */
+export interface AuditEvent {
+  id: string;
+  at: string;
+  actor: "zeke" | "buyer" | "system";
+  action: string;
+  detail: string;
+  restockId?: string;
+  supplierId?: string;
+}
+
+export interface QuoteAssessment {
+  supplierId: string;
+  totalInclVat: number;
+  eligible: boolean;
+  reasons: string[];
+}
+
+/** The result of a deterministic comparison, stored on the restock for the buyer to see. */
+export interface QuoteComparison {
+  comparedAt: string;
+  quantity: number;
+  deadline: string;
+  limit: number;
+  assessed: QuoteAssessment[];
+  winner?: { supplierId: string; totalInclVat: number; reason: string };
+  overLimit?: { total: number; overBy: number };
+}
+
 export type PoStatus = "draft" | "approved" | "sent" | "held";
 
 export interface PurchaseOrder {
@@ -149,6 +178,8 @@ export interface Restock {
   questions: Question[];
   po?: PurchaseOrder;
   block?: { reason: string; total: number; supplierId: string; perUnitInclVat: number };
+  /** Cheapest quote that met every must-have, computed by compare_quotes. */
+  recommendation?: QuoteComparison;
   timeline: { at: string; text: string }[];
 }
 
@@ -160,4 +191,5 @@ export interface ZekeState {
   restocks: Restock[];
   poCounter: number;
   activity: { at: string; text: string }[];
+  auditLog: AuditEvent[];
 }

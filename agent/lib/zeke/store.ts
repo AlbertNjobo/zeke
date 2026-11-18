@@ -36,7 +36,10 @@ async function write(state: ZekeState) {
 
 export async function readState(): Promise<ZekeState> {
   try {
-    return JSON.parse(await readFile(stateFile(), "utf8")) as ZekeState;
+    const state = JSON.parse(await readFile(stateFile(), "utf8")) as ZekeState;
+    // State files written before the audit log existed are still valid; fill it in on read.
+    if (!Array.isArray(state.auditLog)) state.auditLog = [];
+    return state;
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
     const fresh = seedState();

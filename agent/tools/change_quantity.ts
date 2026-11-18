@@ -1,5 +1,6 @@
 import { defineTool } from "eve/tools";
 import { z } from "zod";
+import { appendAudit } from "../lib/zeke/audit";
 import { nowIso, restockById } from "../lib/zeke/logic";
 import { updateState } from "../lib/zeke/store";
 
@@ -18,10 +19,12 @@ export default defineTool({
       r.quantity = quantity;
       r.mustHaves = r.mustHaves.map((m) => m.replace(String(before), String(quantity)));
       if (r.po && r.po.status !== "sent") r.po = undefined;
+      r.recommendation = undefined; // totals changed; the quotes must be compared again
       if (r.status === "blocked" || r.status === "po-review") r.status = "collecting";
       r.block = undefined;
       r.timeline.push({ at, text: `Changed the amount from ${before} to ${quantity}. ${why}` });
-      return { restockId, quantity, next: "Draft the PO again with draft_po from the same supplier's quote." };
+      appendAudit(state, { actor: "buyer", action: "Changed quantity", detail: `${before} → ${quantity}. ${why}`, restockId });
+      return { restockId, quantity, next: "Call compare_quotes again, then draft_po with the winning supplier." };
     });
   },
 });

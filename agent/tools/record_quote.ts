@@ -1,5 +1,6 @@
 import { defineTool } from "eve/tools";
 import { z } from "zod";
+import { appendAudit } from "../lib/zeke/audit";
 import { nowIso, restockById, supplierById } from "../lib/zeke/logic";
 import { updateState } from "../lib/zeke/store";
 import type { QuoteSource } from "../lib/zeke/types";
@@ -67,6 +68,8 @@ export default defineTool({
       }
 
       r.quotes = r.quotes.filter((q) => q.supplierId !== input.supplierId);
+      // A new or replaced quote makes any earlier comparison stale.
+      r.recommendation = undefined;
       r.quotes.push({
         supplierId: input.supplierId,
         channel: input.channel,
@@ -87,6 +90,13 @@ export default defineTool({
       });
       r.timeline.push({ at, text: `Filed ${supplier.name}'s quote` });
       state.activity.unshift({ at, text: `Filed ${supplier.name}'s quote` });
+      appendAudit(state, {
+        actor: "zeke",
+        action: "Filed quote",
+        detail: `${supplier.name}, AED ${input.perUnit.toFixed(2)} per unit, ${input.deliveryLabel}${input.flag ? `. Flagged: ${input.flag}` : ""}.`,
+        restockId: input.restockId,
+        supplierId: input.supplierId,
+      });
 
       const waitingOn = r.supplierIds.filter((id) => !r.quotes.some((q) => q.supplierId === id)).map((id) => supplierById(state, id)?.name);
       return { filed: true, quotesIn: r.quotes.length, waitingOn, allIn: waitingOn.length === 0 };

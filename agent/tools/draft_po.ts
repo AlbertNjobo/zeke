@@ -1,5 +1,6 @@
 import { defineTool } from "eve/tools";
 import { z } from "zod";
+import { appendAudit } from "../lib/zeke/audit";
 import { formatMoney, itemById, nowIso, poTotals, restockById, round2, supplierById } from "../lib/zeke/logic";
 import { updateState } from "../lib/zeke/store";
 
@@ -18,6 +19,11 @@ export default defineTool({
       if (!r) throw new Error(`No restock "${restockId}".`);
       const quote = r.quotes.find((q) => q.supplierId === supplierId);
       if (!quote) throw new Error(`No filed quote from "${supplierId}" on this restock. File it with record_quote first.`);
+      const winner = r.recommendation?.winner;
+      if (!winner) throw new Error("Call compare_quotes before drafting a PO. The winner is decided in code, not in the conversation.");
+      if (winner.supplierId !== supplierId) {
+        throw new Error(`compare_quotes picked ${supplierById(state, winner.supplierId)?.name ?? winner.supplierId}. Do not draft a PO for a different supplier; ask the buyer with ask_buyer first.`);
+      }
       const supplier = supplierById(state, supplierId);
       const item = itemById(state, r.itemId);
       const { total } = poTotals({ quantity: r.quantity, unitPrice: quote.perUnit }, state.company.vatRate);
@@ -33,6 +39,13 @@ export default defineTool({
           perUnitInclVat: round2(quote.perUnit * (1 + state.company.vatRate)),
         };
         r.timeline.push({ at, text: "Stopped: best quote is over the spend limit" });
+        appendAudit(state, {
+          actor: "zeke",
+          action: "Blocked over limit",
+          detail: r.block.reason,
+          restockId,
+          supplierId,
+        });
         const affordable = Math.floor(limit / (quote.perUnit * (1 + state.company.vatRate)));
         return {
           blocked: true,
@@ -67,6 +80,13 @@ export default defineTool({
       r.block = undefined;
       r.timeline.push({ at, text: `Drafted ${number} for ${supplier?.name}. ${why}` });
       state.activity.unshift({ at, text: `Drafted ${number}` });
+      appendAudit(state, {
+        actor: "zeke",
+        action: `Drafted ${number}`,
+        detail: `${supplier?.name ?? supplierId}, ${r.quantity} at AED ${formatMoney(quote.perUnit, 2)} per unit, AED ${formatMoney(total, 2)} incl. VAT. ${why}`,
+        restockId,
+        supplierId,
+      });
       return {
         poNumber: number,
         supplier: supplier?.name,

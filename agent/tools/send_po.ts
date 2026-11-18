@@ -1,5 +1,6 @@
 import { defineTool } from "eve/tools";
 import { z } from "zod";
+import { appendAudit } from "../lib/zeke/audit";
 import { formatMoney, nowIso, poTotals, restockById, supplierById } from "../lib/zeke/logic";
 import { sendFromZeke } from "../lib/zeke/outbound";
 import { readState, updateState } from "../lib/zeke/store";
@@ -52,6 +53,13 @@ export default defineTool({
         at,
       });
       s.activity.unshift({ at, text: `Sent ${rr.po.number}` });
+      appendAudit(s, {
+        actor: "zeke",
+        action: `Sent ${rr.po.number}`,
+        detail: `${supplier.name}, AED ${formatMoney(total, 2)} incl. VAT, after the buyer approved the PO. Simulated: nothing left the machine.`,
+        restockId,
+        supplierId: supplier.id,
+      });
     });
 
     return { sent: true, poNumber: po.number, to: result.to, simulated: result.simulated };
