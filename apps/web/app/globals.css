@@ -130,49 +130,13 @@
  * One construction, six states. Sized in em, so `font-size` sets the face size.
  * The tag hole takes the surface colour behind the face via --zeke-hole.
  * ------------------------------------------------------------------------- */
-/* Zeke's character: a themed squircle body; the dotLottie canvas draws the animated face. */
+/* Zeke's character: the Bloub engine draws the whole SVG, including the body. */
 .zeke-face {
   position: relative;
+  display: inline-block;
   width: 1em;
   height: 1em;
   flex-shrink: 0;
-  border-radius: 32%;
-  background-color: var(--color-accent-500);
-  transform: translateZ(0);
-  transition: background-color 240ms var(--ease-zeke-out);
-}
-.zeke-face[data-state="blocked"] {
-  background-color: var(--color-neutral-400);
-}
-.zeke-face .zeke-hole {
-  position: absolute;
-  top: 0.11em;
-  inset-inline-end: 0.11em;
-  width: 0.09em;
-  height: 0.09em;
-  border-radius: 50%;
-  background: var(--zeke-hole, var(--color-background-full));
-  z-index: 1;
-}
-/* Blooby's 720px composition draws its 148px body at the centre. Scale it so that body is 1em. */
-.zeke-lottie {
-  position: absolute;
-  left: calc(50% - 2.4324em);
-  top: calc(50% - 2.4324em);
-  width: 4.8649em;
-  height: 4.8649em;
-  pointer-events: none;
-  transform-origin: center;
-}
-.zeke-face[data-state="waiting"]::after {
-  content: "";
-  position: absolute;
-  inset: -0.06em;
-  border: 1px solid var(--color-accent-200);
-  border-radius: inherit;
-  opacity: 0;
-  transform: scale(0.9);
-  animation: zeke-ring 1.8s var(--ease-zeke-out) infinite;
 }
 
 /* Live call waveform bars. */
@@ -184,28 +148,13 @@
   animation: zeke-wave 1s linear infinite;
 }
 
-@keyframes zeke-ring {
-  0% { opacity: 0; transform: scale(0.9); }
-  30% { opacity: 0.75; }
-  100% { opacity: 0; transform: scale(1.18); }
-}
 @keyframes zeke-wave {
   0%, 100% { transform: scaleY(0.4); }
   50% { transform: scaleY(1); }
 }
 
-/* Reduced motion: the player is not mounted at all; keep only a gentle opacity cue. */
 @media (prefers-reduced-motion: reduce) {
-  .zeke-face,
   .zeke-wave > span {
     animation: none !important;
-    transition: background-color 200ms linear !important;
   }
-  .zeke-face[data-state="waiting"]::after {
-    animation: zeke-ring-fade 2.4s linear infinite !important;
-  }
-}
-@keyframes zeke-ring-fade {
-  0%, 100% { opacity: 0; }
-  50% { opacity: 0.6; }
 }
