@@ -3,7 +3,7 @@ import { newId, nowIso } from "./logic";
 import type { InboundMessage, Restock, ZekeState } from "./types";
 
 type NewInbound = Pick<InboundMessage, "channel" | "from" | "text"> &
-  Partial<Pick<InboundMessage, "subject" | "attachment">>;
+  Partial<Pick<InboundMessage, "subject" | "attachment" | "providerId">>;
 
 /**
  * File raw supplier words on a restock thread. The text is untrusted data: it is stored verbatim

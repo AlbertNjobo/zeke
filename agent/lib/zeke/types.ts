@@ -96,6 +96,8 @@ export interface InboundMessage {
   text: string;
   subject?: string;
   attachment?: string;
+  /** Provider event/message id, used to dedupe retried webhooks. */
+  providerId?: string;
   receivedAt: string;
 }
 
