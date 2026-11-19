@@ -1,6 +1,6 @@
 "use client";
 
-import { RiBox3Line, RiChat3Line, RiComputerLine, RiHistoryLine, RiHome5Line, RiTeamLine } from "@remixicon/react";
+import { RiArchiveLine, RiBox3Line, RiChat3Line, RiComputerLine, RiHistoryLine, RiHome5Line, RiTeamLine } from "@remixicon/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ZekeFace } from "@/components/zeke/zeke-face";
@@ -13,6 +13,7 @@ const NAV = [
   { href: "/stock", label: "Stock", icon: RiBox3Line, match: (p: string) => p.startsWith("/stock") },
   { href: "/suppliers", label: "Suppliers", icon: RiTeamLine, match: (p: string) => p.startsWith("/suppliers") },
   { href: "/audit", label: "Audit", icon: RiHistoryLine, match: (p: string) => p.startsWith("/audit") },
+  { href: "/archive", label: "Archive", icon: RiArchiveLine, match: (p: string) => p.startsWith("/archive") },
 ] as const;
 
 interface AppRailProps {
