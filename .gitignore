@@ -13,3 +13,4 @@ apps/web/.next/
 # Local runtime state written by dev tools (not project source)
 .eve/
 .taste-skill/
+.vercel

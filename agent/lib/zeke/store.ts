@@ -1,14 +1,14 @@
 import { existsSync } from "node:fs";
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
+import { databaseEnabled, readWithVersion, resetDatabase, writeIfVersion } from "./db";
 import { seedState } from "./seed";
 import type { ZekeState } from "./types";
 
 /**
- * Zeke's state as one JSON file, shared by the eve agent and the web app on the same machine.
- *
- * Local and demo only: serverless hosts don't share a disk between instances. Before deploying,
- * replace readState/updateState with a database (Supabase is the plan); nothing else changes.
+ * Zeke's state store. With DATABASE_URL set (production), one versioned JSON document in Neon is
+ * shared by the agent and the web app. Without it, a local JSON file keeps `eve dev` self-contained.
+ * The rest of the app only calls readState / updateState / resetState.
  */
 
 function projectRoot() {
@@ -34,17 +34,21 @@ async function write(state: ZekeState) {
   await rename(tmp, file);
 }
 
+/** Older state is still valid; fill in fields added after it was written. */
+function normalize(state: ZekeState): ZekeState {
+  if (!Array.isArray(state.auditLog)) state.auditLog = [];
+  if (typeof state.company.maxChases !== "number") state.company.maxChases = 1;
+  for (const r of state.restocks) {
+    if (!Array.isArray(r.chases)) r.chases = [];
+    if (!Array.isArray(r.inbound)) r.inbound = [];
+  }
+  return state;
+}
+
 export async function readState(): Promise<ZekeState> {
+  if (databaseEnabled()) return normalize((await readWithVersion()).state);
   try {
-    const state = JSON.parse(await readFile(stateFile(), "utf8")) as ZekeState;
-    // Older state files are still valid; fill in fields added after they were written.
-    if (!Array.isArray(state.auditLog)) state.auditLog = [];
-    if (typeof state.company.maxChases !== "number") state.company.maxChases = 1;
-    for (const r of state.restocks) {
-      if (!Array.isArray(r.chases)) r.chases = [];
-      if (!Array.isArray(r.inbound)) r.inbound = [];
-    }
-    return state;
+    return normalize(JSON.parse(await readFile(stateFile(), "utf8")) as ZekeState);
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
     const fresh = seedState();
@@ -55,6 +59,14 @@ export async function readState(): Promise<ZekeState> {
 
 /** Read, change and save in one step. Throw inside `change` to abort without saving. */
 export async function updateState<T>(change: (state: ZekeState) => T): Promise<T> {
+  if (databaseEnabled()) {
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const { state, version } = await readWithVersion();
+      const result = change(state);
+      if (await writeIfVersion(normalize(state), version)) return result;
+    }
+    throw new Error("Zeke's state changed while saving. Try again.");
+  }
   const state = await readState();
   const result = change(state);
   await write(state);
@@ -63,6 +75,7 @@ export async function updateState<T>(change: (state: ZekeState) => T): Promise<T
 
 export async function resetState() {
   const fresh = seedState();
-  await write(fresh);
+  if (databaseEnabled()) await resetDatabase(fresh);
+  else await write(fresh);
   return fresh;
 }
