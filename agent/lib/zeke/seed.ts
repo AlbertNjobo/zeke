@@ -299,5 +299,6 @@ export function seedState(): ZekeState {
       { id: "audit-seed-3", at: dubai("04:02"), actor: "buyer", action: "Approved restock couch-paper", detail: "Asked Gulf Medical for quotes on 60 rolls.", restockId: "couch-paper" },
       { id: "audit-seed-4", at: dubai("06:48"), actor: "zeke", action: "Blocked over limit", detail: "Best quote AED 5,670 incl. VAT exceeds the AED 5,000 per-order limit.", restockId: "couch-paper", supplierId: "gulf-medical" },
     ],
+    character: { state: "idle", expression: "attentif", at: dubai("11:02") },
   };
 }

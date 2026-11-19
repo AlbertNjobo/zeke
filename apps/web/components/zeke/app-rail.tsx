@@ -18,11 +18,12 @@ const NAV = [
 
 interface AppRailProps {
   zekeState: ZekeState;
+  expression?: string;
   /** Shows a dot on Chats when something needs the buyer. */
   needsYou: boolean;
 }
 
-export function AppRail({ zekeState, needsYou }: AppRailProps) {
+export function AppRail({ zekeState, expression, needsYou }: AppRailProps) {
   const pathname = usePathname();
   const screenActive = pathname.startsWith("/screen");
 
@@ -32,7 +33,7 @@ export function AppRail({ zekeState, needsYou }: AppRailProps) {
       className="flex w-full shrink-0 items-center gap-1 bg-rail px-3 py-2 md:sticky md:top-0 md:h-dvh md:w-[84px] md:flex-col md:gap-2 md:px-0 md:py-5"
     >
       <Link href="/" aria-label="Zeke home" className="me-2 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-border-focus-ring md:me-0 md:mb-4">
-        <ZekeFace state={zekeState} size={36} hole="var(--color-rail)" />
+        <ZekeFace state={zekeState} expression={expression} size={36} hole="var(--color-rail)" />
       </Link>
       {NAV.map(({ href, label, icon: Icon, match }) => {
         const active = match(pathname);

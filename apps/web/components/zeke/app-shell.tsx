@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { AppRail } from "@/components/zeke/app-rail";
 import { LiveRefresh } from "@/components/zeke/live-refresh";
 import { getState } from "@/lib/zeke/server";
-import { appMood, isOpenNeedsYou, type ZekeMood } from "@/lib/zeke/views";
+import { appMood, characterExpression, isOpenNeedsYou, type ZekeMood } from "@/lib/zeke/views";
 import { cx } from "@/utils/cx";
 
 interface AppShellProps {
@@ -21,7 +21,7 @@ export async function AppShell({ children, zekeState, live = true, className }: 
 
   return (
     <div className="flex min-h-dvh flex-col bg-background-full text-text-primary md:flex-row">
-      <AppRail zekeState={zekeState ?? appMood(state)} needsYou={needsYou} />
+      <AppRail zekeState={zekeState ?? appMood(state)} expression={characterExpression(state)} needsYou={needsYou} />
       <main className={cx("flex min-w-0 flex-1 flex-col", className)}>{children}</main>
       {live ? <LiveRefresh /> : null}
     </div>

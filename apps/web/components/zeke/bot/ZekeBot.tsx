@@ -19,44 +19,61 @@ const STATE_OF: Record<ZekeMood, StateId> = {
   waiting: "notify",
   blocked: "alert",
   done: "wink",
+  alert: "alert",
+  notify: "notify",
+  celebrate: "burst",
+  curious: "wide",
 };
 
 const EXPRESSION_OF: Record<ZekeMood, string> = {
   idle: "attentif",
   thinking: "attentif",
   working: "attentif",
-  waiting: "attentif",
+  waiting: "curieux",
   blocked: "mefiant",
   done: "heureux",
+  alert: "colere",
+  notify: "attentif",
+  celebrate: "excite",
+  curious: "curieux",
 };
+
+/** Subtle face changes while nothing is happening, so the character keeps breathing. */
+const IDLE_EXPRESSIONS = ["attentif", "curieux", "neutre", "attentif", "somnolent"];
+const random = (min: number, max: number) => min + Math.random() * (max - min);
 
 interface ZekeBotProps {
   state: ZekeMood;
   size: number;
+  expression?: string;
   follow?: boolean;
   decorative?: boolean;
   className?: string;
 }
 
 /** React renderer for Bloub's MIT-licensed, clock-free SVG engine. */
-export function ZekeBot({ state, size, follow = false, decorative = false, className }: ZekeBotProps) {
+export function ZekeBot({ state, size, expression, follow = false, decorative = false, className }: ZekeBotProps) {
   const reduce = useReducedMotion();
   const uid = useId().replace(/:/g, "");
   const shape = SHAPE_BY_ID.get("nuage")?.radii ?? null;
-  const expression = EXPRESSION_BY_ID.get(EXPRESSION_OF[state]) ?? null;
-  const engine = useMemo(() => new BotEngine(RAYON, STATE_OF[state], shape, expression), []); // one engine per mount
+  const baseExpressionId = expression ?? EXPRESSION_OF[state];
+  const engine = useMemo(
+    () => new BotEngine(RAYON, STATE_OF[state], shape, EXPRESSION_BY_ID.get(baseExpressionId) ?? null),
+    [], // one engine per mount; later changes go through setters
+  );
   const svgRef = useRef<SVGSVGElement>(null);
   const clock = useRef(0);
   const pointer = useRef<{ x: number; y: number } | null>(null);
   const aimSince = useRef(0);
   const aiming = useRef(false);
+  const nextExpression = useRef(random(4, 8));
   const [frame, setFrame] = useState<BotFrame>(() => engine.sample(0));
 
   // State and expression changes are dated on the engine's own clock so fades blend.
   useEffect(() => {
     engine.setState(STATE_OF[state], clock.current);
-    engine.setExpression(EXPRESSION_BY_ID.get(EXPRESSION_OF[state]) ?? null, clock.current);
-  }, [engine, state]);
+    engine.setExpression(EXPRESSION_BY_ID.get(baseExpressionId) ?? null, clock.current);
+  }, [engine, state, baseExpressionId]);
 
   useEffect(() => {
     if (!follow || reduce) return;
@@ -87,6 +104,12 @@ export function ZekeBot({ state, size, follow = false, decorative = false, class
       const delta = Math.min((now - last) / 1000, 0.05);
       last = now;
       clock.current += delta;
+
+      if (state === "idle" && clock.current >= nextExpression.current) {
+        const next = IDLE_EXPRESSIONS[Math.floor(Math.random() * IDLE_EXPRESSIONS.length)];
+        engine.setExpression(EXPRESSION_BY_ID.get(next) ?? null, clock.current);
+        nextExpression.current = clock.current + random(4, 8);
+      }
 
       const baseFace = STATE_BY_ID.get(STATE_OF[state])?.baseFace ?? false;
       if (follow && baseFace) {

@@ -11,6 +11,7 @@ import { ZekeFace } from "@/components/zeke/zeke-face";
 import { getState } from "@/lib/zeke/server";
 import {
   appMood,
+  characterExpression,
   formatMoney,
   isLow,
   itemById,
@@ -50,7 +51,7 @@ export default async function HomePage() {
       </PageHeader>
 
       <section className="flex flex-col items-center gap-4 px-5 pt-2 text-center md:px-8">
-        <ZekeFace state={mood} size={68} decorative interactive />
+        <ZekeFace state={mood} expression={characterExpression(state)} size={68} decorative interactive />
         <h1 className="text-display-3-semibold tracking-tight text-balance">
           {greeting()}. {cards.length === 0 ? "All clear." : `${COUNT_WORDS[cards.length] ?? `${cards.length} things need`} you.`}
         </h1>

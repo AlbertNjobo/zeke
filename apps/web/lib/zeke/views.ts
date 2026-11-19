@@ -4,7 +4,17 @@ import type { Channel, Restock, ZekeState } from "@zeke/types";
 export type { Channel, Company, PurchaseOrder, Question, Quote, QuoteSource, Restock, StockItem, Supplier, SupplierEvent, ZekeState } from "@zeke/types";
 export { formatMoney, isLow, itemById, needsBuyer, openQuestions, poTotals, supplierById } from "@zeke/logic";
 
-export type ZekeMood = "idle" | "thinking" | "working" | "waiting" | "blocked" | "done";
+export type ZekeMood =
+  | "idle"
+  | "thinking"
+  | "working"
+  | "waiting"
+  | "blocked"
+  | "done"
+  | "alert"
+  | "notify"
+  | "celebrate"
+  | "curious";
 export type ThreadStatus = "needs-you" | "working" | "blocked" | "done";
 
 export interface ThreadView {
@@ -78,12 +88,28 @@ export function isOpenNeedsYou(state: ZekeState) {
   return state.restocks.some((r) => isOpen(r) && needsBuyer(r));
 }
 
-/** The face on the rail: what matters most right now. */
-export function appMood(state: ZekeState): ZekeMood {
+const CUE_TTL_MS = 12_000;
+
+function freshCue(state: ZekeState) {
+  if (!state.character) return undefined;
+  if (Date.now() - new Date(state.character.at).getTime() > CUE_TTL_MS) return undefined;
+  return state.character;
+}
+
+function baseMood(state: ZekeState): ZekeMood {
   const open = state.restocks.filter(isOpen);
   if (open.some(needsBuyer)) return "waiting";
   if (open.some((r) => r.status === "approved" || r.status === "collecting")) return "working";
   return "idle";
+}
+
+/** The face on the rail: a live event reaction if one is fresh, otherwise the page state. */
+export function appMood(state: ZekeState): ZekeMood {
+  return freshCue(state)?.state ?? baseMood(state);
+}
+
+export function characterExpression(state: ZekeState): string {
+  return freshCue(state)?.expression ?? "attentif";
 }
 
 /** "09:40", "Mon", "12 Nov": short, in the buyer's timezone. */

@@ -12,6 +12,10 @@ const LABELS: Record<ZekeState, string> = {
   waiting: "Zeke is waiting on you",
   blocked: "Zeke is blocked",
   done: "Zeke is done",
+  alert: "Zeke spotted a problem",
+  notify: "Zeke has an update",
+  celebrate: "Zeke is pleased",
+  curious: "Zeke is curious",
 };
 
 interface ZekeFaceProps {
@@ -22,13 +26,15 @@ interface ZekeFaceProps {
   hole?: string;
   /** Decorative faces next to text that already names the state. */
   decorative?: boolean;
+  /** Expression id from the Bloub catalogue; defaults to the state's expression. */
+  expression?: string;
   /** Large faces follow the pointer with the engine's gaze rig. */
   interactive?: boolean;
   className?: string;
 }
 
 /** Zeke's animated character, rendered by the ported MIT-licensed Bloub engine. */
-export function ZekeFace({ state = "idle", size = 32, decorative = false, interactive = false, className }: ZekeFaceProps) {
+export function ZekeFace({ state = "idle", size = 32, expression, decorative = false, interactive = false, className }: ZekeFaceProps) {
   const style = { fontSize: size } as CSSProperties;
   return (
     <span
@@ -39,7 +45,7 @@ export function ZekeFace({ state = "idle", size = 32, decorative = false, intera
       aria-label={decorative ? undefined : LABELS[state]}
       aria-hidden={decorative ? true : undefined}
     >
-      <ZekeBot state={state} size={size} follow={interactive} decorative={decorative} />
+      <ZekeBot state={state} size={size} expression={expression} follow={interactive} decorative={decorative} />
     </span>
   );
 }

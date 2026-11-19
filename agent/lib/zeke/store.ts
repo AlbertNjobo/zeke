@@ -37,6 +37,7 @@ async function write(state: ZekeState) {
 /** Older state is still valid; fill in fields added after it was written. */
 function normalize(state: ZekeState): ZekeState {
   if (!Array.isArray(state.auditLog)) state.auditLog = [];
+  if (!state.character) state.character = { state: "idle", expression: "attentif", at: new Date().toISOString() };
   if (typeof state.company.maxChases !== "number") state.company.maxChases = 1;
   for (const r of state.restocks) {
     if (!Array.isArray(r.chases)) r.chases = [];

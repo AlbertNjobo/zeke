@@ -228,6 +228,14 @@ export interface Restock {
   timeline: { at: string; text: string }[];
 }
 
+/** A short-lived character cue written by eve hooks; the UI expires it. */
+export interface CharacterCue {
+  state: "idle" | "thinking" | "working" | "waiting" | "blocked" | "done" | "alert" | "notify" | "celebrate" | "curious";
+  expression?: string;
+  at: string;
+  note?: string;
+}
+
 export interface ZekeState {
   version: number;
   company: Company;
@@ -237,4 +245,5 @@ export interface ZekeState {
   poCounter: number;
   activity: { at: string; text: string }[];
   auditLog: AuditEvent[];
+  character?: CharacterCue;
 }
