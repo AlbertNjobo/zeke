@@ -1,6 +1,7 @@
 import { RiCheckLine, RiLockLine } from "@remixicon/react";
 import { Button } from "@/components/base/buttons/button";
 import { AppShell, PageHeader } from "@/components/zeke/app-shell";
+import { CharacterSettings } from "@/components/zeke/character-settings";
 import { channelIcon } from "@/components/zeke/channel";
 import { LiveWave, Wallpaper } from "@/components/zeke/live-screen";
 import { ZekeFace } from "@/components/zeke/zeke-face";
@@ -107,6 +108,10 @@ export default function ScreenPage() {
           ))}
         </div>
       </Wallpaper>
+
+      <div className="px-3 pb-8 pt-2 md:px-4">
+        <CharacterSettings />
+      </div>
     </AppShell>
   );
 }

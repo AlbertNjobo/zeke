@@ -88,7 +88,7 @@ export function isOpenNeedsYou(state: ZekeState) {
   return state.restocks.some((r) => isOpen(r) && needsBuyer(r));
 }
 
-const CUE_TTL_MS = 12_000;
+const CUE_TTL_MS = 6_000;
 
 function freshCue(state: ZekeState) {
   if (!state.character) return undefined;
