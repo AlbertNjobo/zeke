@@ -21,6 +21,7 @@
     "@tailwindcss/postcss": "^4.3.0",
     "@tanstack/react-table": "^8.21.3",
     "@vercel/connect": "2.7.0",
+    "@vercel/oidc": "^4.0.9",
     "ai": "^7.0.172",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

@@ -1,3 +1,4 @@
+import { getVercelOidcToken } from "@vercel/oidc";
 import { Client, SessionNotActiveError } from "eve/client";
 import { headers } from "next/headers";
 import { restockById } from "@zeke/logic";
@@ -26,7 +27,14 @@ const NOT_RUNNING = "Zeke didn't get the message. Start the app and agent togeth
 /** Message the eve session that owns a restock, or start one if it has none (or it ended). */
 export async function tellZeke(restockId: string | null, message: string): Promise<TellResult> {
   try {
-    const client = new Client({ baseUrl: await agentBaseUrl() });
+    // On Vercel, authenticate to the eve channel with the project's OIDC token. Locally,
+    // localDev() in the channel accepts the request without credentials.
+    const client = new Client({
+      baseUrl: await agentBaseUrl(),
+      ...(process.env.VERCEL
+        ? { auth: { vercelOidc: { token: async () => await getVercelOidcToken() } } }
+        : {}),
+    });
     const restock = restockId ? restockById(await readState(), restockId) : undefined;
 
     if (restock?.sessionId) {
