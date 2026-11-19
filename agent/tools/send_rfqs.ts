@@ -56,7 +56,7 @@ export default defineTool({
       const at = nowIso();
       r.status = "collecting";
       for (const x of sent) {
-        r.rfqs.push({ supplierId: x.supplierId, channel: x.channel, sentAt: at, simulated: x.simulated });
+        r.rfqs.push({ supplierId: x.supplierId, channel: x.channel, sentAt: at, simulated: x.simulated, message: x.message });
         supplierById(s, x.supplierId)?.history.unshift({
           channel: x.channel,
           title: `Zeke asked for a quote on ${r.quantity} ${item?.name ?? r.itemId}`,

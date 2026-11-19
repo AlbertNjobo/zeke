@@ -9,7 +9,7 @@ import { cx } from "@/utils/cx";
 
 const NAV = [
   { href: "/", label: "Home", icon: RiHome5Line, match: (p: string) => p === "/" },
-  { href: "/inbox", label: "Inbox", icon: RiInboxLine, match: (p: string) => p.startsWith("/inbox") },
+  { href: "/inbox", label: "Email", icon: RiInboxLine, match: (p: string) => p.startsWith("/inbox") },
   { href: "/conversations", label: "Chats", icon: RiChat3Line, match: (p: string) => p.startsWith("/conversations") },
   { href: "/stock", label: "Stock", icon: RiBox3Line, match: (p: string) => p.startsWith("/stock") },
   { href: "/suppliers", label: "Suppliers", icon: RiTeamLine, match: (p: string) => p.startsWith("/suppliers") },

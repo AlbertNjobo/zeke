@@ -99,6 +99,7 @@ export interface InboundMessage {
   /** Provider event/message id, used to dedupe retried webhooks. */
   providerId?: string;
   receivedAt: string;
+  readAt?: string;
 }
 
 export type QuoteSource =
@@ -199,6 +200,8 @@ export interface RfqRecord {
   channel: Channel;
   sentAt: string;
   simulated: boolean;
+  /** Exact outbound copy, kept so the mail thread can show what was sent. */
+  message?: string;
 }
 
 export interface Restock {
