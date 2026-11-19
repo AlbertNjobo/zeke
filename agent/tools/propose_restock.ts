@@ -1,7 +1,7 @@
 import { defineTool } from "eve/tools";
 import { z } from "zod";
 import { appendAudit } from "../lib/zeke/audit";
-import { formatMoney, isOpen, itemById, nowIso, suppliersFor } from "../lib/zeke/logic";
+import { formatMoney, isOpen, nowIso, resolveItem, suppliersFor, validItemRefs } from "../lib/zeke/logic";
 import { updateState } from "../lib/zeke/store";
 
 export default defineTool({
@@ -16,21 +16,22 @@ export default defineTool({
   label: { start: ({ itemId }) => `Propose a restock of ${itemId}` },
   async execute({ itemId, quantity, deadline, reason }, ctx) {
     return updateState((state) => {
-      const item = itemById(state, itemId);
-      if (!item) throw new Error(`No item "${itemId}". Use an itemId from check_stock.`);
-      const existing = state.restocks.find((r) => r.itemId === itemId && isOpen(r));
+      const item = resolveItem(state, itemId);
+      if (!item) throw new Error(`No item matching "${itemId}". Valid items: ${validItemRefs(state)}.`);
+      const itemRef = item.id;
+      const existing = state.restocks.find((r) => r.itemId === itemRef && isOpen(r));
       if (existing) {
         return { restockId: existing.id, status: existing.status, note: "An open restock already exists for this item. No new proposal made." };
       }
       const qty = quantity ?? item.usualQuantity;
-      const suppliers = suppliersFor(state, itemId);
+      const suppliers = suppliersFor(state, itemRef);
       if (suppliers.length === 0) throw new Error(`No approved supplier carries ${item.name}. Tell the buyer.`);
       const estimate = Math.round(qty * item.lastUnitPrice * (1 + state.company.vatRate));
       const id = `${item.id}-${Date.now().toString(36)}`;
       const at = nowIso();
       state.restocks.unshift({
         id,
-        itemId,
+        itemId: itemRef,
         quantity: qty,
         estimate,
         supplierIds: suppliers.map((s) => s.id),

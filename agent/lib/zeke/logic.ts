@@ -27,6 +27,20 @@ export function itemById(state: ZekeState, id: string) {
   return state.items.find((i) => i.id === id);
 }
 
+/** Accepts an exact id/SKU/name or a natural fragment such as "gloves" or "nitrile-gloves". */
+export function resolveItem(state: ZekeState, ref: string): StockItem | undefined {
+  const q = ref.trim().toLowerCase();
+  const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+  return (
+    state.items.find((i) => i.id.toLowerCase() === q || i.sku.toLowerCase() === q || i.name.toLowerCase() === q) ??
+    state.items.find((i) => norm(i.name).includes(norm(q)) || norm(i.id).includes(norm(q)) || norm(i.sku).includes(norm(q)))
+  );
+}
+
+export function validItemRefs(state: ZekeState) {
+  return state.items.map((i) => `${i.id} (${i.name})`).join(", ");
+}
+
 export function supplierById(state: ZekeState, id: string) {
   return state.suppliers.find((s) => s.id === id);
 }
