@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { appendAudit } from "@zeke/audit";
 import { fileInboundMessage } from "@zeke/inbound";
-import { nowIso, restockById, supplierById } from "@zeke/logic";
+import { sendFromZeke } from "@zeke/outbound";
+import { newId, nowIso, restockById, supplierById } from "@zeke/logic";
 import { readState, resetState, updateState } from "@zeke/store";
 import { tellZeke, type TellResult } from "@/lib/zeke/agent-client";
 import { demoReplies } from "@/lib/zeke/demo-replies";
@@ -162,6 +163,57 @@ export async function markEmailRead(restockId: string, messageId: string) {
   await updateState((s) => {
     const message = restockById(s, restockId)?.inbound.find((m) => m.id === messageId);
     if (message && !message.readAt) message.readAt = nowIso();
+  });
+  refresh();
+}
+
+/** Buyer reply from the email reading pane; goes through the same identity and idempotency as Zeke's sends. */
+export async function replyToSupplier(restockId: string, supplierId: string, text: string): Promise<{ ok: boolean; error?: string; simulated?: boolean }> {
+  const clean = text.trim();
+  if (!clean) return { ok: false, error: "Write a reply first." };
+  const state = await readState();
+  const supplier = supplierById(state, supplierId);
+  if (!supplier || !restockById(state, restockId)) return { ok: false, error: "That conversation is no longer available." };
+
+  let result;
+  try {
+    result = await sendFromZeke(supplier, "email", clean, state.company);
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : "The email could not be sent." };
+  }
+
+  await updateState((s) => {
+    const r = restockById(s, restockId);
+    if (!r) throw new Error("This restock no longer exists.");
+    r.emailReplies.push({
+      id: newId("reply"),
+      supplierId,
+      to: supplier.email,
+      text: clean,
+      sentAt: nowIso(),
+      simulated: result.simulated,
+      providerMessageId: result.providerMessageId,
+    });
+    appendAudit(s, {
+      actor: "buyer",
+      action: "Replied to supplier",
+      detail: `${supplier.name}: ${clean.slice(0, 140)}`,
+      restockId,
+      supplierId,
+    });
+  });
+  refresh();
+  void tellZeke(restockId, `[App] The buyer replied to ${supplier.name} by email: ${clean}`);
+  return { ok: true, simulated: result.simulated };
+}
+
+/** Resolve or reopen an email thread without deleting the conversation. */
+export async function setEmailThreadResolved(restockId: string, supplierId: string, resolved: boolean) {
+  await updateState((s) => {
+    s.emailThreads ??= {};
+    const key = `${restockId}:${supplierId}`;
+    if (resolved) s.emailThreads[key] = { resolvedAt: nowIso() };
+    else delete s.emailThreads[key];
   });
   refresh();
 }

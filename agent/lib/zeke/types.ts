@@ -96,6 +96,7 @@ export interface InboundMessage {
   text: string;
   subject?: string;
   attachment?: string;
+  attachments?: { filename: string; url?: string }[];
   /** Provider event/message id, used to dedupe retried webhooks. */
   providerId?: string;
   receivedAt: string;
@@ -204,6 +205,16 @@ export interface RfqRecord {
   message?: string;
 }
 
+export interface EmailReply {
+  id: string;
+  supplierId: string;
+  to: string;
+  text: string;
+  sentAt: string;
+  simulated: boolean;
+  providerMessageId?: string;
+}
+
 export interface Restock {
   id: string;
   itemId: string;
@@ -228,6 +239,7 @@ export interface Restock {
   shortlist?: Shortlist;
   chases: ChaseRecord[];
   inbound: InboundMessage[];
+  emailReplies: EmailReply[];
   timeline: { at: string; text: string }[];
 }
 
@@ -249,4 +261,6 @@ export interface ZekeState {
   activity: { at: string; text: string }[];
   auditLog: AuditEvent[];
   character?: CharacterCue;
+  /** Per email-thread state, keyed by restock id + supplier id. */
+  emailThreads?: Record<string, { resolvedAt?: string }>;
 }

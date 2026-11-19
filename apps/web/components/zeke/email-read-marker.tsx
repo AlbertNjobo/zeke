@@ -3,10 +3,13 @@
 import { markEmailRead } from "@/app/actions";
 import { useEffect } from "react";
 
-/** Marks a supplier email as read when its message is opened. */
-export function EmailReadMarker({ restockId, messageId }: { restockId: string; messageId: string }) {
+/** Marks unread supplier messages as read when their thread is opened. */
+export function EmailReadMarker({ messages }: { messages: { restockId: string; messageId: string }[] }) {
+  const signature = JSON.stringify(messages);
   useEffect(() => {
-    void markEmailRead(restockId, messageId).catch(() => undefined);
-  }, [restockId, messageId]);
+    for (const message of JSON.parse(signature) as { restockId: string; messageId: string }[]) {
+      void markEmailRead(message.restockId, message.messageId).catch(() => undefined);
+    }
+  }, [signature]);
   return null;
 }

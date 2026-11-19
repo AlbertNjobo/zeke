@@ -84,6 +84,18 @@ export async function POST(request: Request) {
 
   const alreadyFiled = restock.inbound.some((m) => m.providerId === event.data.email_id);
   if (!alreadyFiled) {
+    const attachments = await Promise.all(
+      (email.attachments ?? []).slice(0, 10).map(async (a) => {
+        const filename = a.filename ?? "attachment";
+        try {
+          const { data, error } = await resend.emails.receiving.attachments.get({ emailId: event.data.email_id, id: a.id });
+          const url = !error && data?.download_url?.startsWith("https://") ? data.download_url : undefined;
+          return { filename, url };
+        } catch {
+          return { filename };
+        }
+      }),
+    );
     await updateState((s) => {
       const r = s.restocks.find((x) => x.id === restock.id);
       if (!r || r.inbound.some((m) => m.providerId === event.data.email_id)) return;
@@ -93,7 +105,8 @@ export async function POST(request: Request) {
         text: email.text ?? email.html ?? "",
         subject: email.subject ?? event.data.subject,
         providerId: event.data.email_id,
-        attachment: email.attachments?.map((a) => a.filename).filter(Boolean).join(", ") || undefined,
+        attachment: attachments.map((a) => a.filename).join(", ") || undefined,
+        attachments,
       });
     });
     await tellZeke(

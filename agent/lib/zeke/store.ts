@@ -38,10 +38,12 @@ async function write(state: ZekeState) {
 function normalize(state: ZekeState): ZekeState {
   if (!Array.isArray(state.auditLog)) state.auditLog = [];
   if (!state.character) state.character = { state: "idle", expression: "attentif", at: new Date().toISOString() };
+  if (!state.emailThreads) state.emailThreads = {};
   if (typeof state.company.maxChases !== "number") state.company.maxChases = 1;
   for (const r of state.restocks) {
     if (!Array.isArray(r.chases)) r.chases = [];
     if (!Array.isArray(r.inbound)) r.inbound = [];
+    if (!Array.isArray(r.emailReplies)) r.emailReplies = [];
   }
   return state;
 }

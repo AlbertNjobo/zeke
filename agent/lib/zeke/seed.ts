@@ -107,7 +107,13 @@ export function seedState(): ZekeState {
         createdAt: dubai("06:12"),
         approvedAt: dubai("06:20"),
         rfqs: [
-          { supplierId: "gulf-medical", channel: "email", sentAt: dubai("06:24"), simulated: true },
+          {
+            supplierId: "gulf-medical",
+            channel: "email",
+            sentAt: dubai("06:24"),
+            simulated: true,
+            message: "Hi Sana, this is Zeke for Oasis Clinics. Could you quote 200 boxes of Nitrile gloves (M), all delivered by Thursday? Please include the price per unit, delivery date and payment terms.",
+          },
           { supplierId: "al-noor", channel: "whatsapp", sentAt: dubai("06:24"), simulated: true },
           { supplierId: "fresh-pack", channel: "phone", sentAt: dubai("11:02"), simulated: true },
         ],
@@ -182,7 +188,29 @@ export function seedState(): ZekeState {
           },
         ],
         chases: [],
-        inbound: [],
+        inbound: [
+          {
+            id: "in-demo-gulf",
+            channel: "email",
+            from: "lawrencenjobo9@gmail.com",
+            subject: "Re: Quote request · Nitrile gloves (M) × 200",
+            text: "Hi Zeke, please find our quotation attached. Stock is available and we can deliver all 200 boxes within 3 working days of the PO, so before Thursday. Price AED 16.20 per box, payment 30 days. Regards, Sana",
+            attachment: "Quote_GM-2291.pdf",
+            providerId: "demo-gulf-2291",
+            receivedAt: dubai("09:40"),
+            readAt: dubai("10:00"),
+          },
+          {
+            id: "in-demo-fresh",
+            channel: "email",
+            from: "theayloe@gmail.com",
+            subject: "Re: 200 nitrile gloves (M)",
+            text: "AED 15.60 per box. We have 150 in stock now, the rest early next week. I cannot confirm all 200 by Thursday.",
+            providerId: "demo-fresh-1602",
+            receivedAt: dubai("11:02"),
+          },
+        ],
+        emailReplies: [],
         po: {
           number: "PO-0142",
           supplierId: "gulf-medical",
@@ -222,6 +250,7 @@ export function seedState(): ZekeState {
         questions: [],
         chases: [],
         inbound: [],
+        emailReplies: [],
         timeline: [{ at: dubai("11:05"), text: "Stock check found masking tape below its reorder point" }],
       },
       {
@@ -241,6 +270,7 @@ export function seedState(): ZekeState {
         questions: [],
         chases: [],
         inbound: [],
+        emailReplies: [],
         block: {
           reason: "The cheapest quote for 60 rolls is AED 5,670 incl. VAT, over the AED 5,000 limit for one order.",
           total: 5670,
@@ -269,6 +299,7 @@ export function seedState(): ZekeState {
         questions: [],
         chases: [],
         inbound: [],
+        emailReplies: [],
         po: {
           number: "PO-0139",
           supplierId: "gulf-medical",
