@@ -48,7 +48,7 @@ export default function ScreenPage() {
         >
           <div className="flex min-w-0 flex-[999_1_460px] flex-col gap-4.5 p-6">
             <div className="flex items-center gap-3.5">
-              <ZekeFace state="working" size={44} hole="var(--color-background-primary-default)" />
+              <ZekeFace state="working" size={44} hole="var(--color-background-primary-default)" interactive />
               <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <span className="text-title-3-semibold">Fresh Pack Co.</span>
                 <span className="text-body-2-regular text-text-secondary">Zeke&apos;s line to Rashid, sales</span>

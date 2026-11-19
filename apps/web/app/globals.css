@@ -130,7 +130,7 @@
  * One construction, six states. Sized in em, so `font-size` sets the face size.
  * The tag hole takes the surface colour behind the face via --zeke-hole.
  * ------------------------------------------------------------------------- */
-/* Zeke's character: geometry stays put; expressions live in transform + opacity only. */
+/* Zeke's character: a themed squircle body; the dotLottie canvas draws the animated face. */
 .zeke-face {
   position: relative;
   width: 1em;
@@ -139,7 +139,7 @@
   border-radius: 32%;
   background-color: var(--color-accent-500);
   transform: translateZ(0);
-  transition: transform 240ms var(--ease-zeke-out), background-color 240ms var(--ease-zeke-out);
+  transition: background-color 240ms var(--ease-zeke-out);
 }
 .zeke-face[data-state="blocked"] {
   background-color: var(--color-neutral-400);
@@ -152,44 +152,18 @@
   height: 0.09em;
   border-radius: 50%;
   background: var(--zeke-hole, var(--color-background-full));
+  z-index: 1;
 }
-/* The eye is the transform wrapper; the capsule is a child so blinking and expression compose. */
-.zeke-face .zeke-eye {
+/* Blooby's 720px composition draws its 148px body at the centre. Scale it so that body is 1em. */
+.zeke-lottie {
   position: absolute;
-  top: 0.38em;
-  width: 0.11em;
-  height: 0.2em;
+  left: calc(50% - 2.4324em);
+  top: calc(50% - 2.4324em);
+  width: 4.8649em;
+  height: 4.8649em;
+  pointer-events: none;
   transform-origin: center;
-  transition: transform 240ms var(--ease-zeke-out);
 }
-.zeke-face .zeke-eye::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 0.06em;
-  background: var(--color-neutral-950);
-  transform-origin: center;
-  animation: zeke-blink 5.2s linear infinite;
-}
-.zeke-face .zeke-eye[data-side="l"] { left: 0.29em; }
-.zeke-face .zeke-eye[data-side="r"] { right: 0.29em; }
-.zeke-face .zeke-eye[data-side="r"]::before { animation-delay: 110ms; }
-
-/* Idle: a slow desynchronised breath plus the default blink cadence. */
-.zeke-face[data-state="idle"] { animation: zeke-breathe 3.4s var(--ease-zeke-in-out) infinite; }
-
-/* Thinking: glance up and hold a slight tilt; slower blinks. */
-.zeke-face[data-state="thinking"] { transform: rotate(-3deg); }
-.zeke-face[data-state="thinking"] .zeke-eye { transform: translate(0.035em, -0.055em) scaleY(0.9); }
-.zeke-face[data-state="thinking"] .zeke-eye::before { animation-duration: 6.5s; }
-
-/* Working: quicker bob with narrowed, scanning eyes. */
-.zeke-face[data-state="working"] { animation: zeke-bob 1.3s var(--ease-zeke-in-out) infinite; }
-.zeke-face[data-state="working"] .zeke-eye { transform: translateY(0.035em) scaleY(0.38); }
-.zeke-face[data-state="working"] .zeke-eye[data-side="r"] { transform: translateY(0.035em) scaleY(0.38) translateX(0.015em); }
-
-/* Waiting: a translucent ring grows from the body; eyes widen. */
-.zeke-face[data-state="waiting"] .zeke-eye { transform: scale(1.12, 1.08); }
 .zeke-face[data-state="waiting"]::after {
   content: "";
   position: absolute;
@@ -201,24 +175,6 @@
   animation: zeke-ring 1.8s var(--ease-zeke-out) infinite;
 }
 
-/* Blocked: a small nudge and flat, angled eyes. */
-.zeke-face[data-state="blocked"] { animation: zeke-nudge 2.2s var(--ease-zeke-in-out) infinite; }
-.zeke-face[data-state="blocked"] .zeke-eye { transform: scaleY(0.22); }
-.zeke-face[data-state="blocked"] .zeke-eye[data-side="l"] { transform: scaleY(0.22) rotate(12deg); }
-.zeke-face[data-state="blocked"] .zeke-eye[data-side="r"] { transform: scaleY(0.22) rotate(-12deg); }
-.zeke-face[data-state="blocked"] .zeke-eye::before { animation-duration: 7s; }
-
-/* Done: quiet, curved eyes. */
-.zeke-face[data-state="done"] .zeke-eye { transform: scale(1.18, 0.9); }
-.zeke-face[data-state="done"] .zeke-eye::before {
-  box-sizing: border-box;
-  border: 0.045em solid var(--color-neutral-950);
-  border-bottom-color: transparent;
-  border-radius: 50%;
-  background: transparent;
-  animation: none;
-}
-
 /* Live call waveform bars. */
 .zeke-wave > span {
   display: block;
@@ -228,45 +184,22 @@
   animation: zeke-wave 1s linear infinite;
 }
 
-@keyframes zeke-blink {
-  0%, 92%, 100% { transform: scaleY(1); }
-  95% { transform: scaleY(0.08); }
-  97% { transform: scaleY(1); }
-}
-@keyframes zeke-breathe {
-  0%, 100% { transform: translateY(0) scaleY(1); }
-  50% { transform: translateY(-0.015em) scaleY(1.02); }
-}
-@keyframes zeke-bob {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-0.035em); }
-}
 @keyframes zeke-ring {
   0% { opacity: 0; transform: scale(0.9); }
   30% { opacity: 0.75; }
   100% { opacity: 0; transform: scale(1.18); }
-}
-@keyframes zeke-nudge {
-  0%, 100% { transform: rotate(0); }
-  25% { transform: rotate(-2deg); }
-  75% { transform: rotate(2deg); }
 }
 @keyframes zeke-wave {
   0%, 100% { transform: scaleY(0.4); }
   50% { transform: scaleY(1); }
 }
 
-/* Reduced motion: keep a gentle opacity cue, drop position and scale changes. */
+/* Reduced motion: the player is not mounted at all; keep only a gentle opacity cue. */
 @media (prefers-reduced-motion: reduce) {
   .zeke-face,
-  .zeke-face .zeke-eye,
-  .zeke-face .zeke-eye::before,
   .zeke-wave > span {
     animation: none !important;
     transition: background-color 200ms linear !important;
-  }
-  .zeke-face[data-state="waiting"] {
-    animation: none !important;
   }
   .zeke-face[data-state="waiting"]::after {
     animation: zeke-ring-fade 2.4s linear infinite !important;
